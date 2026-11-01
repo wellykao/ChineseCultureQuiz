@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2026 wellykao and other lawful rights holders.
 // SPDX-License-Identifier: LicenseRef-Proprietary
-// See LICENSE and NOTICE.md; rights apply only where legally held.
+// This notice does not cover third-party questions or study materials.
 using System;
 using System.IO;
 using System.Linq;
@@ -35,7 +35,7 @@ public class Progress {
  public int Version=2,RoundSize=20,ReadingSize=11,MistakeSchema=1;
  public string LastResetBackup,LastResetLabel;
  public Dictionary<string,Entry> Entries=new Dictionary<string,Entry>();
- public string Bank="已核验基础题",Type="单选题",Category="全部专题",Mode="顺序刷题",Quality="排除待复核",Search="",CurrentId="";
+ public string Bank="中华传统文化专项",Type="单选题",Category="全部专题",Mode="顺序刷题",Quality="排除待复核",Search="",CurrentId="";
  public Round Session;
  public List<RoundResult> History=new List<RoundResult>();
 }

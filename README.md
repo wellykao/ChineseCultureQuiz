@@ -1,55 +1,19 @@
-# 中华文化离线练习室
+# 港澳台考研资料与刷题工具
 
-Windows 本地刷题程序，使用 C# / .NET Framework WinForms，支持单选、多选、判断、填空自评与阅读理解。学习记录保存在本机，日常刷题不需要联网。
+## 直接下载
 
-本仓库用于私有保存与授权协作。软件按 [专有权利声明](LICENSE) 管理，不提供开源许可。仓库所有者：[@wellykao](https://github.com/wellykao)。
+**[下载刷题工具 EXE](https://github.com/wellykao/ChineseCultureQuiz/releases/download/v2.2-full/ChineseCultureQuiz.exe)** —— 下载后双击打开，内置 **2394 道题**，不用编译、不用安装 Python。
 
-## 本仓库包含什么
+**[下载全部资料和刷题工具 ZIP](https://github.com/wellykao/ChineseCultureQuiz/releases/download/v2.2-full/Study-Materials-and-Quiz.zip)** —— 24 份原资料，保留分类与选读说明；下载后右键“全部解压”，打开“先看这里.txt”。
 
-| 目录或文件 | 内容 |
-| --- | --- |
-| `src/` | 程序源码、界面、学习记录、错题本及重置逻辑 |
-| `data/` | 16 道自编示例题及题库格式说明，非考试真题 |
-| `scripts/` | Windows 构建、题库校验与隔离自测 |
-| `docs/` | 使用说明、免责声明、权利边界及提交范围 |
-| `LICENSE` | 保留依法享有权利的专有声明 |
-| `NOTICE.md` | 归属、第三方依赖和 AI 辅助开发说明 |
-| `SECURITY.md` | 漏洞与敏感内容报告方式 |
+刷题工具适用 **Windows 10 / 11**。选答案 → 点“提交答案” → 下一题；答错自动进入错题本。收藏、笔记、做题进度自动保存在当前电脑。
 
-原始 PDF、Word、Excel、完整第三方题库、内嵌完整题库的本地 EXE 和个人学习记录均不纳入此仓库。原本的完整本地程序继续保留在资料目录中。
+## 资料怎么选
 
-## 构建与启动
+Z001 看中华文化与逻辑；Z002 看中华文化与微积分。先读 01，再按需要打开其他文件夹；各文件夹的 README 会说明哪些有用、哪些只看指定章节。
 
-需要 Windows、Windows PowerShell 5.1 或更高版本及 .NET Framework 4.x 编译器。本项目不下载 NuGet 包。
+[查看资料目录](资料/README.md) · [使用说明](docs/使用说明.md)
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1
-.\dist\ChineseCultureQuiz-Demo.exe
-```
+本仓库保持私有。第三方资料权利归原权利人；软件代码保留依法享有的权利。[免责声明](docs/免责声明.md) · [权利声明](LICENSE)
 
-默认输出为仅包含 16 道示例题的独立 EXE。示例版使用独立记录目录 `%LOCALAPPDATA%\ChineseCultureQuizDemo`，与原本完整版本的记录分开。
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test.ps1
-```
-
-自测在 `test-output/` 内创建测试记录与截图，不读取真实学习记录。结果见该目录的 `test-results.json`。不把未经实际运行的检查记为通过。
-
-如拥有另一份题库的使用及分发许可，可指定本地 JSON 路径：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build.ps1 -QuestionBank 'C:\path\to\authorized-questions.json'
-```
-
-题目会被嵌入生成的 EXE，分享 EXE 也会分享其中题目。构建前需确认相应权利；私有仓库同样不能代替第三方授权。自定义数据保存在仓库外或已忽略的 `private-data/`，不要提交真实学习记录。
-
-## 功能
-
-- 顺序、随机、未做、到期复习、错题、收藏与笔记筛选；保留本轮草稿和作答。
-- 错题次数、最近错答、错因、手动收录、掌握、移出与重新巩固。
-- 同一天反复答对不直接视为掌握；复习计划采用本机日期。
-- 重练本轮、重置所选题、重置全部进度、清空错题本及恢复初始设置。
-- 重置前创建独立恢复副本；支持恢复操作前记录。大范围操作需确认范围并输入“重置”。
-- 学习记录备份、恢复、每日备份及损坏恢复；重置前副本不等于彻底删除数据。
-
-详见 [使用说明](docs/使用说明.md)、[免责声明](docs/免责声明.md)、[代码保护说明](docs/代码保护说明.md)。题目、答案与复习安排仅用于辅助学习，不构成招生机构认可或考试成绩保证。
+需要改代码时再看[开发说明](docs/开发说明.md)，普通使用只需上面的下载按钮。

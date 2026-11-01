@@ -7,7 +7,6 @@
 | `QuizExtras.cs` | 答题卡、笔记、历史与字号等辅助界面 |
 | `QuizNotebook.cs` | 错题本、重置范围、确认及验收检查 |
 | `StudyOperations.cs` | 重置变换、操作前副本和撤销 |
-| `RepositoryChecks.cs` | 使用自编示例题运行的隔离自测 |
 | `app.manifest` | Windows 应用权限与 DPI 配置 |
 
-本目录全部为软件代码；题库以嵌入资源 `questions.json` 加载，默认由构建脚本选择 `data/demo-questions.json`。
+本目录全部为软件代码；题库以嵌入资源 `questions.json` 加载，默认由构建脚本选择 `data/questions.json`。

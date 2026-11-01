@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2026 wellykao and other lawful rights holders.
 // SPDX-License-Identifier: LicenseRef-Proprietary
-// See LICENSE and NOTICE.md; rights apply only where legally held.
+// This notice does not cover third-party questions or study materials.
 using System;
 using System.IO;
 using System.Linq;
@@ -49,7 +49,7 @@ public partial class QuizForm:Form {
  readonly Color ink=Color.FromArgb(30,46,53),green=Color.FromArgb(22,112,98),muted=Color.FromArgb(100,114,123);
  public QuizForm(List<Question> questions,string path,bool test,Progress supplied=null){
   all=questions;lookup=all.ToDictionary(q=>q.id);dataVersion=Data.Fingerprint(all);statePath=path;testing=test;state=supplied??ReadProgress();
-  Text="中华文化 · 离线练习室 2.2 · 示例版";Size=new Size(1280,900);MinimumSize=new Size(1080,760);StartPosition=FormStartPosition.CenterScreen;
+  Text="中华文化 · 离线练习室 2.2";Size=new Size(1280,900);MinimumSize=new Size(1080,760);StartPosition=FormStartPosition.CenterScreen;
   BackColor=Color.FromArgb(245,247,246);Font=new Font("Microsoft YaHei UI",10);ForeColor=ink;AutoScaleMode=AutoScaleMode.Dpi;
   Build();SetupExtras();RestoreFilters();Rebuild(true);FormClosing+=(s,e)=>{SaveDraft();draftTimer.Stop();Save();};
  }
@@ -68,7 +68,7 @@ public partial class QuizForm:Form {
   var side=new FlowLayoutPanel{Dock=DockStyle.Fill,FlowDirection=FlowDirection.TopDown,WrapContents=false,AutoScroll=true};sidebar.Controls.Add(side);
   side.Controls.Add(new Label{Text="练 习 室  2.2",Font=new Font(Font.FontFamily,22,FontStyle.Bold),Width=220,Height=45,ForeColor=green});
   side.Controls.Add(new Label{Text="每一轮，都看得见进步。",ForeColor=muted,Width=220,Height=25});
-  bank=Box(side,"题库",all.SelectMany(q=>q.banks).Distinct().Concat(new[]{"全部题库"}));
+  bank=Box(side,"题库",new[]{"中华传统文化专项","已核验基础题","文化大赛2000题","文化基础小测","阅读理解练习","全部题库"});
   type=Box(side,"题型",new[]{"单选题","多选题","判断题","填空题","阅读理解","全部题型"});
   bank.SelectionChangeCommitted+=(s,e)=>{if(bank.Text=="阅读理解练习")Set(type,"阅读理解");else if(type.Text=="阅读理解")Set(type,"单选题");};
   category=Box(side,"专题 · 支持个人调整",new[]{"全部专题","礼俗与生活","哲学与宗教","文学与典籍","艺术与建筑","古代科技","历史与制度","综合文化","阅读理解"});
@@ -255,7 +255,37 @@ public partial class QuizForm:Form {
   return base.ProcessCmdKey(ref msg,keyData);
  }
  void Snapshot(string output,string name){PerformLayout();Application.DoEvents();LayoutQuestion();options.PerformLayout();Application.DoEvents();using(var bitmap=new Bitmap(Width,Height)){DrawToBitmap(bitmap,new Rectangle(0,0,Width,Height));bitmap.Save(Path.Combine(output,name+".png"));}}
-
+ public void RunChecks(string output){
+  testOutput=output;
+  var checks=new List<string>();Action<bool,string> check=(ok,name)=>{if(!ok)throw new Exception("检查失败："+name);checks.Add(name);};
+  check(queue.Count==20&&queue.All(x=>!x.review),"默认20题且排除待复核");var q=Current;Submit();check(E(q).Attempts==0,"空白不计分");Pick(q.answer[0]-'A');Submit();Submit();check(E(q).Attempts==1&&CurrentAnswer.Correct,"单选与重复提交保护");
+  check(choices.Count(x=>x.Result=="correct")==1,"正确选项标绿");ToggleFavorite();check(E(q).Favorite,"收藏保存");Navigate(1);Navigate(-1);check(Current.id==q.id&&evaluated&&E(q).Attempts==1,"本轮返回已答题不重复计分");
+  Snapshot(output,"01-answer");Size=new Size(1080,760);Snapshot(output,"02-small");check(submit.Parent.ClientRectangle.Contains(submit.Bounds)&&next.Parent.ClientRectangle.Contains(next.Bounds),"最小窗口按钮可见");check(headerTools.Parent.ClientRectangle.Contains(headerTools.Bounds)&&headerTools.Height>=36&&headerTools.Controls.Cast<Control>().All(c=>headerTools.ClientRectangle.Contains(c.Bounds)),"字号与学习记录工具可见");
+  type.SelectedItem="多选题";bank.SelectedItem="文化大赛2000题";Rebuild(false);q=Current;foreach(char letter in q.answer)Pick(letter-'A');Submit();check(CurrentAnswer.Correct,"多选完整匹配");Navigate(1);q=Current;Pick(0);Submit();check(CurrentAnswer.Correct==Data.Grade(q,"A"),"多选漏选判断");
+  type.SelectedItem="判断题";Rebuild(false);q=Current;Pick(q.answer=="正确"?0:1);Submit();check(CurrentAnswer.Correct,"判断题");
+  type.SelectedItem="填空题";Rebuild(false);q=Current;fill.Text="测试同义答案";Submit();check(!CurrentAnswer.Graded&&E(q).Attempts==0,"填空不自动评分");unknown.Focus();Message fillKey=new Message();check(ProcessCmdKey(ref fillKey,Keys.Enter)&&CurrentAnswer.Graded,"填空键盘自评");SelfGrade(false);SelfGrade(false);check(E(q).Attempts==1&&E(q).Wrong,"填空自评且防重复");
+  var entry=new Entry();DateTime day=new DateTime(2026,11,1);Data.Record(entry,false,"A",day);check(entry.Wrong&&entry.NextReviewDate=="2026-11-02","错题安排次日复习");Data.Record(entry,true,"B",day.AddDays(1));Data.Record(entry,true,"B",day.AddDays(1));check(entry.Wrong&&entry.ConsecutiveCorrect==1,"同日反复答对不掌握");Data.Record(entry,true,"B",day.AddDays(4));check(!entry.Wrong&&entry.Mastered&&entry.NextReviewDate=="2026-11-12","跨日连续两次掌握与七日复习");Data.Record(entry,false,"A",day.AddDays(5));check(entry.Wrong&&!entry.Mastered&&entry.ConsecutiveCorrect==0,"再次答错重置掌握");check(Data.Due(entry,day.AddDays(6)),"到期判断");
+  string legacy=Path.Combine(output,"legacy-v1.json");File.WriteAllText(legacy,"{\"Version\":1,\"Entries\":{\"old\":{\"Attempts\":3,\"Correct\":1,\"Wrong\":true,\"Favorite\":true}},\"Bank\":\"文化大赛2000题\"}");var migrated=Data.Load(legacy);check(migrated.Version==2&&migrated.Entries["old"].Attempts==3&&migrated.Entries["old"].Favorite&&migrated.Entries["old"].Wrong,"v1无损迁移");
+  bank.SelectedItem="全部题库";type.SelectedItem="全部题型";mode.SelectedItem="错题复习";Rebuild(false);check(queue.Count>0&&queue.All(x=>E(x).Wrong),"错题筛选");mode.SelectedItem="我的收藏";Rebuild(false);check(queue.Count==1&&E(Current).Favorite,"收藏筛选");
+  mode.SelectedItem="只看未做";Rebuild(false);check(queue.All(x=>E(x).Attempts==0),"未做筛选");q=Current;Pick(q.type=="判断题"?(q.answer=="正确"?0:1):0);if(q.type!="填空题")Submit();Save();string savedId=Current.id;var savedRound=state.Session;Rebuild(true);check(Current.id==savedId&&state.Session.Id==savedRound.Id,"恢复未做队列不丢本轮答案");
+  mode.SelectedItem="随机刷题";roundSize.SelectedItem="50 题";Rebuild(false);check(queue.Count==50&&queue.Select(x=>x.id).Distinct().Count()==50,"50题随机无重复");quality.SelectedItem="仅已核验";mode.SelectedItem="顺序刷题";Rebuild(false);check(queue.Count>0&&queue.All(x=>x.verification=="已核验"),"仅核验题筛选");quality.SelectedItem="仅待复核";Rebuild(false);check(queue.All(x=>x.review||E(x).Flagged),"待复核隔离");
+  quality.SelectedItem="排除待复核";bank.SelectedItem="阅读理解练习";type.SelectedItem="阅读理解";Rebuild(false);check(queue.Count==9&&queue.All(x=>!String.IsNullOrEmpty(x.passage)),"原创阅读九题");q=Current;Pick(q.answer[0]-'A');Submit();Snapshot(output,"03-reading");ShowSummary();check(SummaryText().Contains("未完成 8")&&state.History.Count(h=>h.Id==state.Session.Id)==1,"总结正确率与未答统计");ShowSummary();check(state.History.Count(h=>h.Id==state.Session.Id)==1,"重复查看总结不重复记历史");
+  Snapshot(output,"04-reading-answer");string summaryPath=Path.Combine(output,"round-summary.txt");File.WriteAllText(summaryPath,SummaryText(),Encoding.UTF8);
+  bank.SelectedItem="全部题库";type.SelectedItem="单选题";roundSize.SelectedItem="10 题";Rebuild(false);check(queue.Count==10,"10题轮次");submit.Focus();Message keyMessage=new Message();Keys answerKey=(Keys)((int)Keys.D1+Current.answer[0]-'A');check(ProcessCmdKey(ref keyMessage,answerKey)&&Chosen()==Current.answer,"数字键选择");ProcessCmdKey(ref keyMessage,Keys.Enter);check(evaluated&&CurrentAnswer.Graded,"回车提交");int beforeIndex=index;ProcessCmdKey(ref keyMessage,Keys.Enter);check(index==beforeIndex+1,"回车下一题");
+  var dueEntry=E(Current);dueEntry.WasWrong=true;dueEntry.Wrong=true;dueEntry.NextReviewDate=DateTime.Today.AddDays(-1).ToString("yyyy-MM-dd");mode.SelectedItem="今日待复习";Rebuild(false);check(queue.Count>0&&queue.All(x=>Data.Due(E(x),DateTime.Today)),"今日待复习筛选");
+  mode.SelectedItem="顺序刷题";roundSize.SelectedItem="全部匹配题目";Rebuild(false);var longest=queue.OrderByDescending(x=>x.prompt.Length+x.options.Sum(y=>y.Length)).First();index=queue.FindIndex(x=>x.id==longest.id);Render();Snapshot(output,"05-long-options");check(options.AutoScroll&&choices.All(x=>x.Height>=53),"长选项自动换行滚动");
+  var corrected=all.First(x=>!String.IsNullOrEmpty(x.correctionNote));check(corrected.originalAnswer!=corrected.answer&&corrected.evidence.Length>0,"勘误保留原答案与依据");
+  q=Current;E(q).CategoryOverride="礼俗与生活";Save();var restored=Data.Load(statePath);check(restored.Entries[q.id].CategoryOverride=="礼俗与生活"&&restored.Session.QuestionIds.Count==queue.Count,"专题调整及完整会话保存");
+  bank.SelectedItem="中华传统文化专项";type.SelectedItem="单选题";mode.SelectedItem="顺序刷题";roundSize.SelectedItem="20 题";Rebuild(false);q=Current;Pick(q.answer[0]-'A');Submit();JumpToQuestion(1);Pick(0);string draftId=Current.id;int draftAttempts=E(Current).Attempts;JumpToQuestion(2);JumpToQuestion(1);check(Chosen()=="A"&&!evaluated&&E(Current).Attempts==draftAttempts,"未提交选择切题保留且不计分");Save();check(Data.Load(statePath).Session.Answers[draftId].Answer=="A"&&!Data.Load(statePath).Session.Answers[draftId].Graded,"选择草稿落盘");check(NextUnfinished()==2,"定位下一道未完成题");AnswerSheetDialog();
+  string roundId=state.Session.Id;type.SelectedItem="填空题";bank.SelectedItem="文化大赛2000题";Rebuild(false);check(state.History.Any(h=>h.Id==roundId),"开始新轮自动归档已答成绩");q=Current;fill.Text="未提交的中文填空草稿";Navigate(1);Navigate(-1);check(fill.Text=="未提交的中文填空草稿"&&!evaluated&&E(q).Attempts==0,"填空草稿切题恢复");Save();state=Data.Load(statePath);Rebuild(true);check(fill.Text=="未提交的中文填空草稿"&&!CurrentAnswer.Revealed,"填空草稿重启恢复");
+  E(Current).Note="记住概念区别，复习时回查原文。";Save();check(Data.Load(statePath).Entries[Current.id].Note.Contains("概念区别"),"个人笔记保存");mode.SelectedItem="我的笔记";bank.SelectedItem="全部题库";type.SelectedItem="全部题型";Rebuild(false);check(queue.Count==1&&E(Current).Note.Contains("概念区别"),"我的笔记筛选");int oldSize=state.ReadingSize;ChangeReadingSize(1);check(state.ReadingSize==oldSize+1&&Math.Abs(prompt.Font.Size-(oldSize+5))<0.1&&Data.Load(statePath).ReadingSize==state.ReadingSize,"阅读字号调整并保存");NotesDialog();HistoryDialog();
+  var reversedClock=new Entry();Data.Record(reversedClock,false,"A",day);Data.Record(reversedClock,true,"B",day.AddDays(2));string dueBefore=reversedClock.NextReviewDate;Data.Record(reversedClock,true,"B",day.AddDays(1));check(reversedClock.ConsecutiveCorrect==1&&reversedClock.NextReviewDate==dueBefore,"日期倒退不增加掌握阶段");
+  string store=Path.Combine(output,"store-check","progress.json");var fixture=new Progress();fixture.Entries["fixture"]=new Entry{Attempts=2,Correct=1,Note="备份样本"};Data.Save(store,fixture);Data.Save(store,fixture);string backups=Path.Combine(Path.GetDirectoryName(store),"backups");check(File.Exists(Path.Combine(backups,"progress-"+DateTime.Today.ToString("yyyy-MM-dd")+".json")),"每日有效记录备份");
+  string expired=Path.Combine(backups,"progress-"+DateTime.Today.AddDays(-8).ToString("yyyy-MM-dd")+".json");File.WriteAllText(expired,Data.Json().Serialize(fixture));string keep=Path.Combine(backups,"keep.txt");File.WriteAllText(keep,"保留其他文件");Data.DailyBackup(store,DateTime.Today.AddDays(1));check(!File.Exists(expired)&&File.Exists(keep),"备份保留七天且不删除其他文件");File.WriteAllText(store,"broken main");File.WriteAllText(store+".bak","broken backup");string recoverySource;var recovered=Data.Recover(store,out recoverySource);check(recovered.Entries["fixture"].Note=="备份样本"&&recoverySource.Contains("backups")&&File.ReadAllText(store)=="broken main","主记录和即时备份损坏时从每日副本恢复");Data.Save(store,recovered);check(Data.Load(store).Entries["fixture"].Attempts==2,"损坏恢复后可正常保存");
+  check(lookup.Count==2394,"题库及题目ID未变");
+  RunNotebookChecks(output,check);
+  File.WriteAllText(Path.Combine(output,"test-results.json"),Data.Json().Serialize(new{passed=true,questions=all.Count,checks=checks,version="2.2"}),Encoding.UTF8);
+ }
 }
 static class Program {
  [STAThread]static void Main(string[] args){
@@ -266,8 +296,8 @@ static class Program {
      form.ShowInTaskbar=false;form.StartPosition=FormStartPosition.Manual;form.Location=new Point(-20000,-20000);form.Shown+=(s,e)=>{try{form.RunChecks(output);}catch(Exception ex){File.WriteAllText(Path.Combine(output,"test-failure.txt"),ex.ToString());Environment.ExitCode=1;}finally{form.Close();}};Application.Run(form);
     }return;
    }
-   string path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ChineseCultureQuizDemo","progress.json");
-   using(var single=new System.Threading.Mutex(false,"Local\\ChineseCultureQuizDemoOffline")){
+   string path=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"ChineseCultureQuiz","progress.json");
+   using(var single=new System.Threading.Mutex(false,"Local\\ChineseCultureQuizOffline")){
     bool owns=false;try{try{owns=single.WaitOne(0,false);}catch(System.Threading.AbandonedMutexException){owns=true;}if(!owns){MessageBox.Show("练习室已打开，请切换到现有窗口。","中华文化练习室");return;}Application.Run(new QuizForm(qs,path,false));}finally{if(owns)single.ReleaseMutex();}
    }
   }catch(Exception ex){MessageBox.Show("程序未能启动：\n"+ex.Message,"中华文化练习室");Environment.ExitCode=1;}

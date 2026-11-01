@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2026 wellykao and other lawful rights holders.
 // SPDX-License-Identifier: LicenseRef-Proprietary
-// See LICENSE and NOTICE.md; rights apply only where legally held.
+// This notice does not cover third-party questions or study materials.
 using System;
 using System.IO;
 using System.Linq;

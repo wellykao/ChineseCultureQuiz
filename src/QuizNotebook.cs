@@ -1,6 +1,6 @@
 ﻿// Copyright (c) 2026 wellykao and other lawful rights holders.
 // SPDX-License-Identifier: LicenseRef-Proprietary
-// See LICENSE and NOTICE.md; rights apply only where legally held.
+// This notice does not cover third-party questions or study materials.
 using System;
 using System.IO;
 using System.Linq;
@@ -51,7 +51,7 @@ public partial class QuizForm {
  string OperationDescription(ResetKind kind,int count){
   if(kind==ResetKind.ReplayRound)return "重练当前轮的 "+count+" 题：清除本轮选择、评分与草稿，从第一题开始。\n保留累计答题次数、错题、收藏、笔记及历史成绩。";
   if(kind==ResetKind.ClearMistakes)return "清空全部错题本与复习安排。\n保留累计作答/正确次数、收藏、笔记和旧轮次成绩；以后答错会重新收录。";
-  if(kind==ResetKind.Factory)return "恢复初始设置：清除全部做题进度、错题、历史成绩、收藏、笔记、个人分类、存疑及字号设置。\n内置题库及操作前恢复副本仍保留。";
+  if(kind==ResetKind.Factory)return "恢复初始设置：清除全部做题进度、错题、历史成绩、收藏、笔记、个人分类、存疑及字号设置。\n内置2394道题及操作前恢复副本仍保留。";
   return "重置 "+count+" 道题的答题次数、正确次数、错题状态与复习安排，并清除它们在当前轮的作答。\n保留收藏、笔记、个人分类、存疑和字号。"+(kind==ResetKind.AllProgress?"\n全部进度重置会同时清空全部轮次历史。":"\n旧轮次历史是当时的成绩快照，不追溯修改；当前轮成绩将重新计算。")+"\n相同题目在多个题库共享记录，重置会同时影响这些入口。";
  }
  static bool ResetAllowed(bool agree,string input,bool strong){return agree&&(!strong||input=="重置");}
