@@ -1,0 +1,40 @@
+# Build products and local development files
+/dist/
+/test-output/
+/private-data/
+.vs/
+.vscode/
+bin/
+obj/
+__pycache__/
+*.exe
+*.dll
+*.pdb
+*.zip
+*.log
+*.tmp
+*.bak
+
+# Personal records and credentials
+progress*.json
+test-progress*.json
+backups/
+operations/
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+credentials*
+*token*.json
+
+# Third-party study materials / complete private question banks
+questions.json
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.csv
+*.epub
